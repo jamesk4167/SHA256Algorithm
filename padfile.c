@@ -26,6 +26,11 @@ int main(int argc, char *argv[]){
 
     FILE* f;  
 
+    //check if a file has been entered
+    if(argc < 1){
+        puts("No input file");
+        exit(1);
+    }
     
     //do some error checking (header file stdarg)
     f = fopen(argv[1], "r");
