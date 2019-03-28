@@ -9,7 +9,7 @@
 #include<stdint.h>
 
 //represents a message block
-union messageBlock{
+union msgBlock{
 
 uint8_t e[64];
 uint32_t t[32];
@@ -51,11 +51,11 @@ static const uint32_t K[64] = {
 
     //retrieve the next message block
     // will return 1 when there are messageblocks and 0 when there are no more
-    int nextMsgBlk(FILE *f, union msgblock *M, enum status *s, int *nobits);
+    int nextMsgBlk(FILE *f, union msgBlock *M, enum status *s, uint64_t *nobits);
 
     uint32_t W[64];
 int main(int argc, char *argv[]){
-    FILE* f;  
+    FILE* msgFile;  
 
     //check if a file has been entered
     if(argc < 1){
@@ -64,16 +64,18 @@ int main(int argc, char *argv[]){
     }
     
     //do some error checking (header file stdarg)
-    f = fopen(argv[1], "r");
-
-    sha256(f);
+    msgFile = fopen(argv[1], "r");
+    //run secure hash algorithm on the file
+    sha256(msgFile);
+    //close the file
+    fclose(msgFile);
     return 0;
 }
 
 
-void sha256(FILE *f){
+void sha256(FILE *msgFile){
     //the current messageBlock
-    union messageBlock MsgBlk;
+    union msgBlock M;
 
     //the number of bits read from thr gilr
     uint16_t noBits = 0;
@@ -86,6 +88,7 @@ void sha256(FILE *f){
     uint32_t a,b,c,d,e,f,g,h;
 
     uint32_t T1, T2;
+    
     uint32_t H[8] = {
         0x6a09a667,
         0xbb67ae85,
@@ -103,8 +106,8 @@ void sha256(FILE *f){
 
     int t, i;
 
-    while(nextMsgBlk(f,M, s, noBits)){
-    for(t = 0; i < 16; i++)
+    while(nextMsgBlk(msgFile, &M, &s, &noBits)){
+    for(t = 0; t < 16; t++)
         W[t] = M.t[t];
 
     for(t = 16; t < 64; t++){
@@ -145,7 +148,7 @@ void sha256(FILE *f){
 
 
     }
-
+    printf("%x %x %x %x %x %x %x %x ", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7]);
 }
     //Do this for all methods below
     //#define sigma_0(uint32_t x) ((rotr(7,x) ^ rotr(18,x) ^ shr(3,x)))
@@ -187,66 +190,69 @@ void sha256(FILE *f){
 //end of code from this file the rest
 
 
-int nextMsgBlk(FILE *f, union msgblock *M, enum status *s, int *nobits){
+int nextMsgBlk(FILE *f, union msgBlock *MsgBlk, enum status *s, uint64_t *noBits){
 
-    
-/*
-    FILE* f;  
-
-    //check if a file has been entered
-    if(argc < 1){
-        puts("No input file");
-        exit(1);
-    }
-    
-    //do some error checking (header file stdarg)
-    f = fopen(argv[1], "r");*/
-
+    //the number of bytes we get from fread.
+    uint64_t NoOfBytes;
+    //For looping
     int i;
+
+
+    if (*s == FINISH)
+        return 0;
+
+    //check if we need another block full of padding.
+    if(*s == PAD0 || *s == PAD1){
+        //set the first 56 bytes to zero bits
+        for(i = 0; i < 56; i++){
+            MsgBlk->e[i] = 0x00;
+        }//set the last 64 bits to an integer (should be big endian)
+        MsgBlk->s[7] = *noBits;
+        //Tell s we are finished
+        *s = FINISH;
+        //if s was pd1 then set the first bit of M to one.
+        if(*s == PAD1){
+        MsgBlk->e[0] = 0x80;
+    }
+    return 1;
+    }
+    //if s was pd1 then set the first bit of M to one.
+    
     //check for error
-    while(s == READ) {
-        NoOfBytes = fread(MsgBlk.e, 1, 64, f);
-        //printf(("Read %2llu bytes \n", NoOfBytes));
-        noBits = noBits + (NoOfBytes * 8);
-        if(NoOfBytes < 55 ){
-            printf("I have found a block with less then 55 bytes");
-            MsgBlk.e[NoOfBytes] = 0x01;
+        //if we get here we havent finished reading the file
+        NoOfBytes = fread(MsgBlk->e, 1, 64, f);
+        //keep track of the number of bytes we have read
+        *noBits = *noBits + (NoOfBytes * 8);
+        //if we read less then 56 bytes we can put all padding in this block
+        if(NoOfBytes < 56 ){
+            
+            MsgBlk->e[NoOfBytes] = 0x80;
             while((NoOfBytes < 56)){
                 NoOfBytes = NoOfBytes + 1;
-                MsgBlk.e[NoOfBytes] = 0x00;
+                MsgBlk->e[NoOfBytes] = 0x00;
             }
-           MsgBlk.s[7] = noBits; 
-           s = FINISH;
-
+            //append the file size in bits as a big endian unsigned 64 int.
+           MsgBlk->s[7] = *noBits; 
+           //Tell s we are finished
+           *s = FINISH;
+        //otherwise check fif we can put some padding into this block
         }else if(NoOfBytes < 64 ){
-            s = PAD0;
-            MsgBlk.e[NoOfBytes] = 0x80;
+            //tell s we need another message block with padding but no 1 bits
+            *s = PAD0;
+            //put the one bit into current block
+            MsgBlk->e[NoOfBytes] = 0x80;
+            //pad the rest of the block with zero bits.
             while(NoOfBytes < 64){
                 NoOfBytes = NoOfBytes + 1;
-                MsgBlk.e[NoOfBytes] = 0x00;
+                MsgBlk->e[NoOfBytes] = 0x00;
             }
             //need to check if at nd of file(checks if file is exactly 512 bytes so no bits at end)
         }else if(feof(f)){
-            printf("Perfect file");
-            s=PAD1;
+            //tell s that we need another messageblock with all padding
+            *s=PAD1;
         }
-
-
-        if(s == PAD0){
-            for(i = 0; i < 56; i++){
-                MsgBlk.e[i] = 0x00;
-            }
-            MsgBlk.s[7] = noBits;
-        }
-        if( s == PAD1)
-            MsgBlk.e[0] = 0x80;
     
-    }
-    fclose(f);
-
-
-    for(int i = 0; i < 64;i++)
-        printf("%x", MsgBlk.e[i]);
-    printf("\n");
-    return 0;
+    
+    //if we get this far, then return 1 so function is called again
+    return 1;
 }
