@@ -43,51 +43,56 @@ static const uint32_t K[64] = {
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
     };
    //section 4.1.2 and 4.2.2
-    uint32_t sigma_0(uint32_t x);
-    uint32_t sigma_1(uint32_t x);
-
-
-    #define Sigma_0(x) (rotr(7,x) ^ rotr(18,x) ^ shr(3,x))
-
-    uint32_t SIGMA0(uint32_t x);
-    uint32_t SIGMA1(uint32_t x);
-
-
-    uint32_t CH(uint32_t x, uint32_t y, uint32_t z);
-    uint32_t MAJ(uint32_t x, uint32_t y, uint32_t z);
-
     
-    //see section 3.2 for definitions
-    uint32_t rotr(uint32_t n, uint32_t x);
-    uint32_t shr(uint32_t n, uint32_t x);
+    #define sigma_1(x) (rotr(17,x) ^ rotr(19,x) ^ rotr(10,x))
+    #define sigma_0(x) (rotr(7,x) ^ rotr(18,x) ^ shr(3,x))
+
+
+    #define SIGMA1(x) (rotr(6,x) ^ rotr(11,x) ^ rotr(25,x))
+    #define SIGMA0(x) (rotr(2,x) ^ rotr(13,x) ^ rotr(22,x))
+   
+
+
+    #define CH(x,y,z) ((x & y) ^ ((!x) & z))
+
+    #define MAJ(x,y,z) ((x & y) ^ (x & z) ^ (y & z))
+
+    #define rotr(n,x) ((x >> n) | (x << (32 - n)))
+    #define shr(n,x) ((x >> n))
+
+
 
     //retrieve the next message block
     // will return 1 when there are messageblocks and 0 when there are no more
     int nextMsgBlk(FILE *f, union msgBlock *M, enum status *s, uint64_t *nobits);
 
     uint32_t W[64];
+
+
+
     int main(int argc, char *argv[]){
     FILE* msgFile;  
 
-    //check if a file has been entered
     
-    
-    //do some error checking (header file stdarg)
-    //msgFile = fopen(argv[1], "r");
-    //check if the file exists 
     if((msgFile = fopen(argv[1],"r"))!=NULL)
+    
         {
+            
+
             sha256(msgFile);
             fclose(msgFile);
         }
     else
         {
-            printf("Error: File not found\n");
+            printf("Error: File not found \n");
         }
     return 0;
 }
 
 
+
+
+//Sha256
 void sha256(FILE *msgFile){
     //the current messageBlock
     union msgBlock M;
@@ -104,15 +109,13 @@ void sha256(FILE *msgFile){
 
     uint32_t T1, T2;
     
+
+    //initial valuies for H
     uint32_t H[8] = {
-        0x6a09a667,
-        0xbb67ae85,
-        0x3c6ef372,
-        0xa54ff53a,
-        0x519e527f,
-        0x9b05688c,
-        0x1f83d9ab,
-        0x5be0cd19
+        0x6a09a667,0xbb67ae85,
+        0x3c6ef372,0xa54ff53a,
+        0x519e527f,0x9b05688c,
+        0x1f83d9ab,0x5be0cd19
     };
     
 
@@ -120,9 +123,9 @@ void sha256(FILE *msgFile){
     
 
     int t, i;
-
+    //check the next message
     while(nextMsgBlk(msgFile, &M, &s, &noBits)){
-    for(t = 0; t < 16; t++)
+    for(t = 0; t <= 15; t++)
         W[t] = M.t[t];
 
     for(t = 16; t < 64; t++){
@@ -154,57 +157,24 @@ void sha256(FILE *msgFile){
     }
     H[0] = a + H[0];
     H[1] = b + H[1];
-    H[2] = b + H[2];
-    H[3] = b + H[3];
-    H[4] = b + H[4];
-    H[5] = b + H[5];
-    H[6] = b + H[6];
-    H[7] = b + H[7];
+    H[2] = c + H[2];
+    H[3] = d + H[3];
+    H[4] = e + H[4];
+    H[5] = f + H[5];
+    H[6] = g + H[6];
+    H[7] = h + H[7];
 
 
     }
     printf("%x %x %x %x %x %x %x %x ", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7]);
 }
-    //Do this for all methods below
-    //#define sigma_0(uint32_t x) ((rotr(7,x) ^ rotr(18,x) ^ shr(3,x)))
-    
-    
-    uint32_t sigma_0(uint32_t x){
-        //section 3.2
-        //ROTR(x) = (x>>N) | (x <<(32-n))
-        //shr_n(x) = (x >> n) 
-        return (rotr(7,x) ^ rotr(18,x) ^ shr(3,x));
-    }
-
-
-    uint32_t sigma_1(uint32_t x){
-        return (rotr(17,x) ^ rotr(19,x) ^ rotr(10,x));
-    }
-    uint32_t rotr(uint32_t n, uint32_t x){
-        return (x >> n) | (x << (32 - n));
-    }
-    uint32_t shr(uint32_t n, uint32_t x){
-        return(x >> n);
-    }
 
 
 
-    uint32_t SIGMA0(uint32_t x){
-        return rotr(2,x) ^ rotr(13,x) ^ rotr(22,x); 
-    }
-    uint32_t SIGMA1(uint32_t x){
-        return rotr(6,x) ^ rotr(11,x) ^ rotr(25,x); 
-    }
 
-    uint32_t CH(uint32_t x, uint32_t y, uint32_t z){
-        return (x & y) ^ ((!x) & z);
-    }
-    uint32_t MAJ(uint32_t x, uint32_t y, uint32_t z){
-        return (x & y) ^ (x & z) ^ (y & z);
-    }
 //end of code from this file the rest
 
-
+//next message block
 int nextMsgBlk(FILE *f, union msgBlock *MsgBlk, enum status *s, uint64_t *noBits){
 
     //the number of bytes we get from fread.
@@ -231,7 +201,7 @@ int nextMsgBlk(FILE *f, union msgBlock *MsgBlk, enum status *s, uint64_t *noBits
     }
     return 1;
     }
-    //if s was pd1 then set the first bit of M to one.
+    //if s was pad1 then set the first bit of M to one.
     
     //check for error
         //if we get here we havent finished reading the file
