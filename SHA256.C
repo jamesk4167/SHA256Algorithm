@@ -44,6 +44,14 @@ static const uint32_t K[64] = {
     uint32_t sigma_0(uint32_t x);
     uint32_t sigma_1(uint32_t x);
 
+
+    uint32_t SIGMA0(uint32_t x);
+    uint32_t SIGMA1(uint32_t x);
+
+
+    uint32_t CH(uint32_t x, uint32_t y, uint32_t z);
+    uint32_t MAJ(uint32_t x, uint32_t y, uint32_t z);
+
     
     //see section 3.2 for definitions
     uint32_t rotr(uint32_t n, uint32_t x);
@@ -54,7 +62,7 @@ static const uint32_t K[64] = {
     int nextMsgBlk(FILE *f, union msgBlock *M, enum status *s, uint64_t *nobits);
 
     uint32_t W[64];
-int main(int argc, char *argv[]){
+    int main(int argc, char *argv[]){
     FILE* msgFile;  
 
     //check if a file has been entered
@@ -78,7 +86,7 @@ void sha256(FILE *msgFile){
     union msgBlock M;
 
     //the number of bits read from thr gilr
-    uint16_t noBits = 0;
+    uint64_t noBits = 0;
     
     //status of message block
     enum status s = READ;
