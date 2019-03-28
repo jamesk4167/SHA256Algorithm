@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include<stdint.h>
 
+#include<unistd.h>
+
 //represents a message block
 union msgBlock{
 
@@ -45,6 +47,8 @@ static const uint32_t K[64] = {
     uint32_t sigma_1(uint32_t x);
 
 
+    #define Sigma_0(x) (rotr(7,x) ^ rotr(18,x) ^ shr(3,x))
+
     uint32_t SIGMA0(uint32_t x);
     uint32_t SIGMA1(uint32_t x);
 
@@ -66,17 +70,20 @@ static const uint32_t K[64] = {
     FILE* msgFile;  
 
     //check if a file has been entered
-    if(argc < 1){
-        puts("No input file");
-        exit(1);
-    }
+    
     
     //do some error checking (header file stdarg)
-    msgFile = fopen(argv[1], "r");
-    //run secure hash algorithm on the file
-    sha256(msgFile);
-    //close the file
-    fclose(msgFile);
+    //msgFile = fopen(argv[1], "r");
+    //check if the file exists 
+    if((msgFile = fopen(argv[1],"r"))!=NULL)
+        {
+            sha256(msgFile);
+            fclose(msgFile);
+        }
+    else
+        {
+            printf("Error: File not found\n");
+        }
     return 0;
 }
 
