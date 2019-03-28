@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include<stdint.h>
 
-
+//represents a message block
 union messageBlock{
 
 uint8_t e[64];
@@ -20,9 +20,9 @@ uint64_t s[8];
 //a flag for reading the file
 enum status {READ, PAD0, PAD1, FINISH};
 
-void sha256();
+void sha256(FILE *f);
 
-const uint32_t K[] = {
+static const uint32_t K[64] = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
         0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
         0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 
@@ -44,44 +44,46 @@ const uint32_t K[] = {
     uint32_t sigma_0(uint32_t x);
     uint32_t sigma_1(uint32_t x);
 
-
+    
     //see section 3.2 for definitions
     uint32_t rotr(uint32_t n, uint32_t x);
     uint32_t shr(uint32_t n, uint32_t x);
 
-    int nextMsgBlk(FILE *f, union messageBlock, enum status *S,int  *noBits);
+    //retrieve the next message block
+    // will return 1 when there are messageblocks and 0 when there are no more
+    int nextMsgBlk(FILE *f, union msgblock *M, enum status *s, int *nobits);
 
-
+    uint32_t W[64];
 int main(int argc, char *argv[]){
     FILE* f;  
 
+    //check if a file has been entered
+    if(argc < 1){
+        puts("No input file");
+        exit(1);
+    }
     
     //do some error checking (header file stdarg)
     f = fopen(argv[1], "r");
 
-    sha256();
+    sha256(f);
     return 0;
 }
 
 
-void sha256(){
+void sha256(FILE *f){
+    //the current messageBlock
+    union messageBlock MsgBlk;
 
-
-
-    //section 4.1.2 and 4.2.2
+    //the number of bits read from thr gilr
+    uint16_t noBits = 0;
     
+    //status of message block
+    enum status s = READ;
+
 
     uint32_t W[64];
-
     uint32_t a,b,c,d,e,f,g,h;
-
-
-    uint32_t SIGMA0(uint32_t x);
-    uint32_t SIGMA1(uint32_t x);
-
-    uint32_t CH(uint32_t x, uint32_t y, uint32_t z);
-    uint32_t MAJ(uint32_t x, uint32_t y, uint32_t z);
-    
 
     uint32_t T1, T2;
     uint32_t H[8] = {
@@ -97,13 +99,13 @@ void sha256(){
     
 
 
-    uint32_t M[16];
+    
 
     int t, i;
 
-    for(i = 0; i < 1; i++){
+    while(nextMsgBlk(f,M, s, noBits)){
     for(t = 0; i < 16; i++)
-        W[t] = M[t];
+        W[t] = M.t[t];
 
     for(t = 16; t < 64; t++){
        W[t] = sigma_1(W[t - 2]) + W[t - 7] + sigma_0(W[t - 15]) + W[t - 16];
@@ -185,14 +187,10 @@ void sha256(){
 //end of code from this file the rest
 
 
-int msgblk(int argc, char *argv[]){
+int nextMsgBlk(FILE *f, union msgblock *M, enum status *s, int *nobits){
 
-    union messageBlock MsgBlk;
-    uint16_t noBits = 0;
-    uint64_t NoOfBytes;
     
-    enum status s = READ;
-
+/*
     FILE* f;  
 
     //check if a file has been entered
@@ -202,7 +200,7 @@ int msgblk(int argc, char *argv[]){
     }
     
     //do some error checking (header file stdarg)
-    f = fopen(argv[1], "r");
+    f = fopen(argv[1], "r");*/
 
     int i;
     //check for error
