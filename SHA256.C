@@ -43,13 +43,13 @@ static const uint32_t K[64] = {
         0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
     };
    //section 4.1.2 and 4.2.2
-    
-    #define sigma_1(x) (rotr(17,x) ^ rotr(19,x) ^ rotr(10,x))
-    #define sigma_0(x) (rotr(7,x) ^ rotr(18,x) ^ shr(3,x))
+    //created definitions to help with memort management
+    #define sigma_1(x) (ROTR(x,17) ^ ROTR(x,19) ^ ROTR(x,10))
+    #define sigma_0(x) (ROTR(x,7) ^ ROTR(x,18) ^ ROTR(x,3))
 
 
-    #define SIGMA1(x) (rotr(6,x) ^ rotr(11,x) ^ rotr(25,x))
-    #define SIGMA0(x) (rotr(2,x) ^ rotr(13,x) ^ rotr(22,x))
+   #define EP0(x) (ROTR(x,2) ^ ROTR(x,13) ^ ROTR(x,22))
+   #define EP1(x) (ROTR(x,6) ^ ROTR(x,11) ^ ROTR(x,25))
    
 
 
@@ -57,9 +57,9 @@ static const uint32_t K[64] = {
 
     #define MAJ(x,y,z) ((x & y) ^ (x & z) ^ (y & z))
 
-    #define rotr(n,x) ((x >> n) | (x << (32 - n)))
-    #define shr(n,x) ((x >> n))
-
+    #define ROTR(n,x) ((x >> n) | (x << (32 - n)))
+    #define shr(n,x) (((x) >> n))
+    #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 
 
     //retrieve the next message block
@@ -67,18 +67,22 @@ static const uint32_t K[64] = {
     int nextMsgBlk(FILE *f, union msgBlock *M, enum status *s, uint64_t *nobits);
 
     uint32_t W[64];
-
+    
+    
 
 
     int main(int argc, char *argv[]){
     FILE* msgFile;  
-
+    int n = 1;
     
+    
+
+    //check if a file has been inputted
     if((msgFile = fopen(argv[1],"r"))!=NULL)
     
         {
             
-
+        //pass the file to sha256
             sha256(msgFile);
             fclose(msgFile);
         }
@@ -104,7 +108,7 @@ void sha256(FILE *msgFile){
     enum status s = READ;
 
 
-    uint32_t W[64];
+    
     uint32_t a,b,c,d,e,f,g,h;
 
     uint32_t T1, T2;
@@ -121,15 +125,17 @@ void sha256(FILE *msgFile){
 
 
     
-
+    //for loop to iterate through array
     int t, i;
     //check the next message
     while(nextMsgBlk(msgFile, &M, &s, &noBits)){
-    for(t = 0; t <= 15; t++)
-        W[t] = M.t[t];
+    for(t = 0; t < 16; t++)
+    //converting from little endian to big endian
+        W[t] = SWAP_UINT32(M.t[t]);
 
     for(t = 16; t < 64; t++){
        W[t] = sigma_1(W[t - 2]) + W[t - 7] + sigma_0(W[t - 15]) + W[t - 16];
+
     }
 
 
@@ -143,8 +149,8 @@ void sha256(FILE *msgFile){
     h = H[7];
 
     for(t = 0; t < 64; t++){
-        T1 = h + SIGMA1(e) + CH(e,f,g) + K[t] + W[t];
-        T2 = SIGMA0(a) + MAJ(a, b, c);
+        T1 = h + EP1(e) + CH(e,f,g) + K[t] + W[t];
+        T2 = EP0(a) + MAJ(a, b, c);
         h = g;
         g = f;
         f = e;
@@ -155,6 +161,7 @@ void sha256(FILE *msgFile){
         a = T1 + T2;
 
     }
+
     H[0] = a + H[0];
     H[1] = b + H[1];
     H[2] = c + H[2];
@@ -166,6 +173,7 @@ void sha256(FILE *msgFile){
 
 
     }
+
     printf("%x %x %x %x %x %x %x %x ", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7]);
 }
 
