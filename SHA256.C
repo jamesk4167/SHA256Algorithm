@@ -53,40 +53,8 @@ static const uint32_t K[64] = {
 0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,
 0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2
 };
-   //section 4.1.2 and 4.2.2
-    //created definitions to help with memort management
-    /*
-    #define sigma_0(x) (ROTR(x,7) ^ ROTR(x,18) ^ ((x) >> 3))ROTR(x,3))
-    #define sigma_1(x) (ROTR(x,17) ^ ROTR(x,19) ^ ((x) >> 10)) ROTR(x,10))s
-
-    #define EP0(x) (ROTR(x,2) ^ ROTR(x,13) ^ ROTR(x,22))
-    #define EP1(x) (ROTR(x,6) ^ ROTR(x,11) ^ ROTR(x,25))
    
-
-
-    #define CH(x,y,z) ((x & y) ^ ((!x) & z))
-
-    #define MAJ(x,y,z) ((x & y) ^ (x & z) ^ (y & z))
-
-    #define ROTR(n,x) ((x >> n) | (x << (32 - n)))
-    #define shr(n,x) (((x) >> n))
-    //macro to switch from little endian to big endian
-    #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
-    
-
-   //#define rotl(a,b) (((a) << (b)) | ((a) >> (32-(b))))
-    #define rotr(a,b) (((a) >> (b)) | ((a) << (32-(b))))
-
-    #define CH(x, y, z) (((x) & (y)) ^ (~(x) & (z)))
-    #define MAJ(x, y, z) (((x) & (y)) ^ ((x) & (z)) ^ ((y) & (z)))
-    #define EP0(x) (rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22))
-    #define EP1(x) (rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25))
-    #define SIG_0(x) (rotr(x, 7) ^ rotr(x, 18) ^ ((x) >> 3))
-    #define SIG_1(x) (rotr(x, 17) ^ rotr(x, 19) ^ ((x) >> 10))*/
-    #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
-
-
-
+ #define SWAP_UINT32(x) (((x) >> 24) | (((x) & 0x00FF0000) >> 8) | (((x) & 0x0000FF00) << 8) | ((x) << 24))
 #define uchar unsigned char
 #define uint unsigned int
 
@@ -100,6 +68,13 @@ static const uint32_t K[64] = {
 #define EP1(x) (ROTRIGHT(x,6) ^ ROTRIGHT(x,11) ^ ROTRIGHT(x,25))
 #define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
 #define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
+
+
+#define SWAP_UINT64(x) \
+        ( (((x) >> 56) & 0x00000000000000FF) | (((x) >> 40) & 0x000000000000FF00) | \
+          (((x) >> 24) & 0x0000000000FF0000) | (((x) >>  8) & 0x00000000FF000000) | \
+          (((x) <<  8) & 0x000000FF00000000) | (((x) << 24) & 0x0000FF0000000000) | \
+          (((x) << 40) & 0x00FF000000000000) | (((x) << 56) & 0xFF00000000000000) )
     //retrieve the next message block
     // will return 1 when there are messageblocks and 0 when there are no more
     int nextMsgBlk(FILE *f, union msgBlock *M, enum status *s, uint64_t *nobits);
@@ -181,11 +156,12 @@ void sha256(FILE *msgFile){
        W[t] = SIG1(W[t - 2]) + W[t - 7] + SIG0(W[t - 15]) + W[t - 16];
 
     }
+    /*
     for(t = 0; t < 64; t++){
         printf("%08x ", W[t]);
     }
     printf("\n");
-
+*/
 
     a = H[0];
     b = H[1];
@@ -196,29 +172,9 @@ void sha256(FILE *msgFile){
     g = H[6];
     h = H[7];
 
-    printf("################\n");
-    printf("%08x\n",a);
-    printf("%08x\n",b);
-    printf("%08x\n",c);
-    printf("%08x\n",d);
-    printf("%08x\n",e);
-    printf("%08x\n",f);
-    printf("%08x\n",g);
-    printf("%08x\n",h);
-    printf("################\n");
     
     for(t = 0; t < 64; t++){
-        /*
-        T1 = h + EP1(e) + CH(e,f,g) + K[t] + W[t];
-        T2 = EP0(a) + MAJ(a, b, c);
-        h = g;
-        g = f;
-        f = e;
-        e = d + T1;
-        d = c;
-        c = b;
-        b = a;
-        a = T1 + T2;*/
+       
 
         
 
@@ -274,7 +230,9 @@ int nextMsgBlk(FILE *f, union msgBlock *MsgBlk, enum status *s, uint64_t *noBits
         for(i = 0; i < 56; i++){
             MsgBlk->e[i] = 0x00;
         }//set the last 64 bits to an integer (should be big endian)
-        MsgBlk->s[7] = *noBits;
+        //MsgBlk->s[7] = *noBits;
+        //MsgBlk->s [7] = SWAP_UINT64(MsgBlk -> s [7]);
+        MsgBlk->s[7] = SWAP_UINT64(*noBits);
         //Tell s we are finished
         *s = FINISH;
         //if s was pd1 then set the first bit of M to one.
@@ -299,7 +257,10 @@ int nextMsgBlk(FILE *f, union msgBlock *MsgBlk, enum status *s, uint64_t *noBits
                 MsgBlk->e[NoOfBytes] = 0x00;
             }
             //append the file size in bits as a big endian unsigned 64 int.
-           MsgBlk->s[7] = *noBits; 
+           //MsgBlk->s[7] = *noBits; 
+           //MsgBlk->s [7] = SWAP_UINT64(MsgBlk -> s [7]);
+           MsgBlk->s[7] = SWAP_UINT64(*noBits);
+
            //Tell s we are finished
            *s = FINISH;
         //otherwise check fif we can put some padding into this block
