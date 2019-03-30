@@ -68,6 +68,7 @@ static const uint32_t K[64] = {
 #define EP1(x) (ROTRIGHT(x,6) ^ ROTRIGHT(x,11) ^ ROTRIGHT(x,25))
 #define SIG0(x) (ROTRIGHT(x,7) ^ ROTRIGHT(x,18) ^ ((x) >> 3))
 #define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
+#define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
 
 
 #define SWAP_UINT64(x) \
@@ -160,7 +161,11 @@ uint64_t * sha256(FILE *msgFile){
     while(nextMsgBlk(msgFile, &M, &s, &noBits)){
     for(t = 0; t < 16; t++){
     //converting from little endian to big endian
+    if(IS_BIG_ENDIAN){
+        W[t] = M.t[t];
+    }else{
         W[t] = SWAP_UINT32(M.t[t]) ;
+    }
     }
     for(t = 16; t < 64; t++){
        W[t] = SIG1(W[t - 2]) + W[t - 7] + SIG0(W[t - 15]) + W[t - 16];
