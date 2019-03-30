@@ -22,7 +22,7 @@ uint64_t s[8];
 //a flag for reading the file
 enum status {READ, PAD0, PAD1, FINISH};
 
-void sha256(FILE *f);
+uint64_t * sha256(FILE *f);
 /*
 static const uint32_t K[64] = {
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -87,6 +87,8 @@ static const uint32_t K[64] = {
     int main(int argc, char *argv[]){
     FILE* msgFile;  
     int n = 1;
+
+    uint64_t  *h;
     
     
 
@@ -96,7 +98,11 @@ static const uint32_t K[64] = {
         {
             
         //pass the file to sha256
-            sha256(msgFile);
+            h = sha256(msgFile);
+            for(int i =0; i < 8; i++){
+                printf("%08llx", *(h+i));
+            }
+            //printf(*pointer);
         }
     else
         {
@@ -110,7 +116,7 @@ static const uint32_t K[64] = {
 
 
 //Sha256
-void sha256(FILE *msgFile){
+uint64_t * sha256(FILE *msgFile){
     uint32_t W[64];
     //the current messageBlock
     union msgBlock M;
@@ -127,19 +133,23 @@ void sha256(FILE *msgFile){
 
     uint32_t T1, T2;
     
+    
 
     //initial valuies for H
     uint32_t H[8] = {
         0x6a09e667,
-    0xbb67ae85,
-0x3c6ef372,
-0xa54ff53a,
-0x510e527f,
-0x9b05688c,
-0x1f83d9ab,
-0x5be0cd19,
+        0xbb67ae85,
+        0x3c6ef372,
+        0xa54ff53a,
+        0x510e527f,
+        0x9b05688c,
+        0x1f83d9ab,
+        0x5be0cd19,
 
     };
+
+    uint64_t *list = malloc(sizeof(uint64_t[8]));
+    
     
 
 
@@ -156,12 +166,10 @@ void sha256(FILE *msgFile){
        W[t] = SIG1(W[t - 2]) + W[t - 7] + SIG0(W[t - 15]) + W[t - 16];
 
     }
-    /*
-    for(t = 0; t < 64; t++){
-        printf("%08x ", W[t]);
-    }
+    
+    
     printf("\n");
-*/
+
 
     a = H[0];
     b = H[1];
@@ -204,7 +212,11 @@ void sha256(FILE *msgFile){
 
     }
 
-    printf("%x %x %x %x %x %x %x %x ", H[0],H[1],H[2],H[3],H[4],H[5],H[6],H[7]);
+    for(t = 0; t < 8; t++){
+        list[t] =H[t];
+    }
+
+    return list;
 }
 
 
