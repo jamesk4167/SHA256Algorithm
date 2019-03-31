@@ -8,6 +8,14 @@ In order to complete this project I followed the videos provided by Ian mcglough
 
 
 ## Setup
+In order to run this file the first thing you will need is a GCCC compiler. it can be downloaded from [here](http://www.codebind.com/cprogramming/install-mingw-windows-10-gcc/)\\
+Next you will need to clone this repo to your local machine.\\
+Once the file has been cloned, you must navigate to where the file has been dowloaded and run the following command:\\
+gcc -o sha256 sha256.c\\
+
+This will compile your file, next you will need to run \\
+./sha256 followed by the file which you want to hash.
+
 
 ## Additional features
 I have provided all of the additional features mentioned in the videos, including creating macros using the #define method in order to create the EP0, EP1, CH and MAJ files. 
@@ -16,12 +24,14 @@ I then decided to add a check for the endianess of a machine so it would be only
 Finally I decided to use malloc to create a pointer to the array H[8]. This helped with memory management as instead of printing the results to the main method, I provided a pointer which would return the value instead.
 
 
+## Testing
+In order to test my implementation of the sha256 algorithm, I needed to creates files with the specified amount of bytes. So I have created an emptyFile and abc.txt, these are provided in the tests folder in order to test my implementation of the sha256 standard.
+
 ## Correct hashes
-in order to test my implementation of the sha256 algorithm, I needed to creates files with the specified amount of bytes. So I have created an emptyFile and abc.txt, these are provided in the tests folder.
  emptyFile   = e3b0c442 98fc1c14 9afbf4c8 996fb924 27ae41e4 649b934c a495991b 7852b855
  abc = ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
  
-Research
+## Research
 [Sha256 standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
 [little to big endian](https://stackoverflow.com/questions/19275955/convert-little-endian-to-big-endian)
 [Dynamic memory allocation](https://www.programiz.com/c-programming/c-dynamic-memory-allocation)
