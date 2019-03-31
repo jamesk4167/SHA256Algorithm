@@ -50,7 +50,7 @@ uint64_t * sha256(FILE *f);
 #define SIG1(x) (ROTRIGHT(x,17) ^ ROTRIGHT(x,19) ^ ((x) >> 10))
 #define IS_BIG_ENDIAN (!*(unsigned char *)&(uint16_t){1})
 
-
+//macro to swap the bits, needed for taking in input
 #define SWAP_UINT64(x) \
         ( (((x) >> 56) & 0x00000000000000FF) | (((x) >> 40) & 0x000000000000FF00) | \
           (((x) >> 24) & 0x0000000000FF0000) | (((x) >>  8) & 0x00000000FF000000) | \
@@ -64,7 +64,7 @@ uint64_t * sha256(FILE *f);
     
     
 
-
+//main function
     int main(int argc, char *argv[]){
     FILE* msgFile;  
     int n = 1;
@@ -83,7 +83,7 @@ uint64_t * sha256(FILE *f);
             for(int i =0; i < 8; i++){
                 printf("%08llx", *(h+i));
             }
-            //printf(*pointer);
+            
         }
     else
         {
