@@ -28,14 +28,14 @@ Finally I decided to use malloc to create a pointer to the array H[8]. This help
 In order to test my implementation of the sha256 algorithm, I needed to creates files with the specified amount of bytes. So I have created an emptyFile and abc.txt, these are provided in the tests folder in order to test my implementation of the sha256 standard.
 
 ## Correct hashes
- emptyFile   = e3b0c442 98fc1c14 9afbf4c8 996fb924 27ae41e4 649b934c a495991b 7852b855
+ emptyFile   = e3b0c442 98fc1c14 9afbf4c8 996fb924 27ae41e4 649b934c a495991b 7852b855\\
  abc = ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
  
 ## Research
-[Sha256 standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
-[little to big endian](https://stackoverflow.com/questions/19275955/convert-little-endian-to-big-endian)
-[Dynamic memory allocation](https://www.programiz.com/c-programming/c-dynamic-memory-allocation)
-[Sha256 implementation](https://codereview.stackexchange.com/questions/183921/incremental-sha256sum-computation)
+[Sha256 standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)\\
+[little to big endian](https://stackoverflow.com/questions/19275955/convert-little-endian-to-big-endian)\\
+[Dynamic memory allocation](https://www.programiz.com/c-programming/c-dynamic-memory-allocation)\\
+[Sha256 implementation](https://codereview.stackexchange.com/questions/183921/incremental-sha256sum-computation)\\
 Used to test against my own implementation.
 ## Authors
 
