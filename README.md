@@ -32,9 +32,11 @@ In order to test my implementation of the sha256 algorithm, I needed to creates 
  abc = ba7816bf 8f01cfea 414140de 5dae2223 b00361a3 96177a9c b410ff61 f20015ad
  
 ## Research
-[Sha256 standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)\\
-[little to big endian](https://stackoverflow.com/questions/19275955/convert-little-endian-to-big-endian)\\
-[Dynamic memory allocation](https://www.programiz.com/c-programming/c-dynamic-memory-allocation)\\
+[Sha256 standard](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf)
+[little to big endian](https://stackoverflow.com/questions/19275955/convert-little-endian-to-big-endian)
+[Dynamic memory allocation](https://www.programiz.com/c-programming/c-dynamic-memory-allocation)
+[Sha256 implementation](https://codereview.stackexchange.com/questions/183921/incremental-sha256sum-computation)
+Used to test against my own implementation.
 ## Authors
 
 * **James kennedy** 
